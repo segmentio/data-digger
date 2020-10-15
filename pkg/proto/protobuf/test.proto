@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+option go_package = "github.com/segmentio/data-digger/pkg/kafka/protobuf";
+
+message TestMessage1 {
+  string key1 = 1;
+  int32 key2 = 2;
+}
+
+message TestMessage2 {
+  string key1 = 1;
+  int32 key2 = 2;
+}
