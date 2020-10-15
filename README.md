@@ -10,7 +10,9 @@ Currently, the tool supports reading data in Kafka, S3, or local files. Kafka-so
 be in either JSON or protobuf format. S3 and local file sources support
 [newline-delimited JSON](https://en.wikipedia.org/wiki/JSON_streaming#Line-delimited_JSON) only.
 
+<p align="center">
 <img width="1000" alt="digger_screenshot2" src="https://user-images.githubusercontent.com/54862872/96078675-e026ed80-0e67-11eb-9cf3-96b6e0da5556.png">
+</p>
 
 ## Motivation
 
