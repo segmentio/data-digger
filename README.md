@@ -1,3 +1,4 @@
+[![Circle CI](https://circleci.com/gh/segmentio/data-digger.svg?style=svg&circle-token=567fa1e91d2191b3158e7e0d2145cb3cda9d6f83)](https://circleci.com/gh/segmentio/data-digger)
 # data-digger
 
 The data-digger is a simple tool for "digging" through JSON or protobuf-formatted
