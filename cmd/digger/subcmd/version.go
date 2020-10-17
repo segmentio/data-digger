@@ -1,4 +1,4 @@
-package main
+package subcmd
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 
 type versionConfig struct{}
 
-func versionCmd(ctx context.Context) cli.Function {
+func VersionCmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config versionConfig) {
 			fmt.Printf("digger version v%s\n", version.Version)

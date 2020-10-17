@@ -1,4 +1,4 @@
-package main
+package subcmd
 
 import (
 	"context"
@@ -16,7 +16,7 @@ type fileConfig struct {
 	Recursive bool   `flag:"--recursive"  help:"scan subdirectories recursively" default:"false"`
 }
 
-func fileCmd(ctx context.Context) cli.Function {
+func FileCmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config fileConfig) {
 			if config.Debug {

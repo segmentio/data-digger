@@ -1,23 +1,17 @@
-ifndef VERSION
-	VERSION := $(shell git describe --tags --always --dirty="-dev")
-endif
-
 PKG := ./cmd/digger
 BIN := build/digger
 
-LDFLAGS := -ldflags='-X "main.version=$(VERSION)"'
-
 .PHONY: digger
 digger:
-	go build -o $(BIN) $(LDFLAGS) $(PKG)
+	go build -o $(BIN) $(PKG)
 
 .PHONY: digger-linux
 digger-linux:
-	$QGOOS=linux GOARCH=amd64 go build -o build/digger-linux $(LDFLAGS) ./cmd/digger
+	$QGOOS=linux GOARCH=amd64 go build -o build/digger-linux ./cmd/digger
 
 .PHONY: install
 install:
-	go install $(LDFLAGS) $(PKG)
+	go install $(PKG)
 
 .PHONY: vet
 vet:
@@ -33,4 +27,4 @@ test: vet
 
 .PHONY: clean
 clean:
-	rm -Rf build
+	rm -Rf build vendor test_inputs
