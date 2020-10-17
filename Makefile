@@ -17,7 +17,7 @@ digger-linux:
 
 .PHONY: install
 install:
-	go install $(LDFLAGS) $(PKG)
+	go install -trimpath $(LDFLAGS) $(PKG)
 
 .PHONY: vet
 vet:
