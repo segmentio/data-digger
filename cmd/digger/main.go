@@ -85,6 +85,7 @@ func loadPlugins(pathsStr string) error {
 
 	paths := strings.Split(pathsStr, ",")
 	for _, path := range paths {
+		log.Debugf("Loading plugin at path %s", path)
 		_, err := plugin.Open(path)
 		if err != nil {
 			return err

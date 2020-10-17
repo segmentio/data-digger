@@ -24,7 +24,10 @@ func fileCmd(ctx context.Context) cli.Function {
 			} else {
 				log.SetLevel(log.InfoLevel)
 			}
-			loadPlugins(config.Plugins)
+			err := loadPlugins(config.Plugins)
+			if err != nil {
+				log.Fatalf("Could not load plugins: %+v", err)
+			}
 
 			processors, err := makeProcessors(config.commonConfig, []string{})
 			if err != nil {
