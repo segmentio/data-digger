@@ -1,6 +1,6 @@
 FROM golang:1.14 as builder
 ENV SRC github.com/segmentio/data-digger
-ENV CGO_ENABLED=1
+ENV CGO_ENABLED=0
 
 COPY . /go/src/${SRC}
 RUN cd /go/src/${SRC} && make install

@@ -1,4 +1,4 @@
-package main
+package subcmd
 
 import (
 	"context"
@@ -26,7 +26,7 @@ type kafkaConfig struct {
 	Until      time.Duration `flag:"--until"         help:"time to end at (relative to now)" default:"-"`
 }
 
-func kafkaCmd(ctx context.Context) cli.Function {
+func KafkaCmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config kafkaConfig) {
 			if config.Debug {

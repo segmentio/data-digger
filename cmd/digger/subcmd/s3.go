@@ -1,4 +1,4 @@
-package main
+package subcmd
 
 import (
 	"context"
@@ -19,7 +19,7 @@ type s3Config struct {
 	Prefixes   string `flag:"-p,--prefixes" help:"comma-separated list of prefixes"`
 }
 
-func s3Cmd(ctx context.Context) cli.Function {
+func S3Cmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config s3Config) {
 			if config.Debug {
