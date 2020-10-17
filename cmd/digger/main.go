@@ -49,9 +49,10 @@ func main() {
 
 	cli.Exec(
 		cli.CommandSet{
-			"file":  fileCmd(ctx),
-			"kafka": kafkaCmd(ctx),
-			"s3":    s3Cmd(ctx),
+			"file":    fileCmd(ctx),
+			"kafka":   kafkaCmd(ctx),
+			"s3":      s3Cmd(ctx),
+			"version": versionCmd(ctx),
 		},
 	)
 }
