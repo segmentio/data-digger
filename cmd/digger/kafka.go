@@ -34,7 +34,10 @@ func kafkaCmd(ctx context.Context) cli.Function {
 			} else {
 				log.SetLevel(log.InfoLevel)
 			}
-			loadPlugins(config.Plugins)
+			err := loadPlugins(config.Plugins)
+			if err != nil {
+				log.Fatalf("Could not load plugins: %+v", err)
+			}
 
 			if err := validateKafkaConfig(config); err != nil {
 				log.Fatalf("Config not valid: %+v", err)
