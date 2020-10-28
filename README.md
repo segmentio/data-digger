@@ -141,9 +141,9 @@ The `kafka` subcommand exposes a number of options to configure the underlying K
 -a, --address string      kafka address
 -o, --offset int64        kafka offset (default: -1)
 -p, --partitions string   comma-separated list of partitions
-    --since duration      time to start at relative to now
+    --since string        time to start at; can be either RFC3339 timestamp or duration relative to now
 -t, --topic string        kafka topic
-    --until duration      time to end at relative to now
+    --until string        time to end at; can be either RFC3339 timestamp or duration relative to now
 ```
 
 The `address` and `topic` options are required; the others are optional and will default to

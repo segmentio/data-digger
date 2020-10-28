@@ -2,11 +2,9 @@ package subcmd
 
 import (
 	"context"
-	"errors"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/segmentio/cli"
 	dig "github.com/segmentio/data-digger/pkg/digger"
 	"github.com/segmentio/data-digger/pkg/util"
@@ -17,13 +15,13 @@ import (
 type kafkaConfig struct {
 	commonConfig
 
-	Address    string        `flag:"-a,--address"    help:"kafka address"`
-	Offset     int64         `flag:"-o,--offset"     help:"kafka offset" default:"-1"`
-	Partitions string        `flag:"-p,--partitions" help:"comma-separated list of partitions" default:"-"`
-	ProtoTypes string        `flag:"--proto-types"   help:"comma-separated list of registered proto types" default:"-"`
-	Since      time.Duration `flag:"--since"         help:"time to start at (relative to now)" default:"-"`
-	Topic      string        `flag:"-t,--topic"      help:"kafka topic"`
-	Until      time.Duration `flag:"--until"         help:"time to end at (relative to now)" default:"-"`
+	Address    string `flag:"-a,--address"    help:"kafka address"`
+	Offset     int64  `flag:"-o,--offset"     help:"kafka offset" default:"-1"`
+	Partitions string `flag:"-p,--partitions" help:"comma-separated list of partitions" default:"-"`
+	ProtoTypes string `flag:"--proto-types"   help:"comma-separated list of registered proto types" default:"-"`
+	SinceStr   string `flag:"--since"         help:"time to start at; can be either RFC3339 timestamp or duration relative to now" default:"-"`
+	Topic      string `flag:"-t,--topic"      help:"kafka topic"`
+	UntilStr   string `flag:"--until"         help:"time to end at; can be either RFC3339 timestamp or duration relative to now" default:"-"`
 }
 
 func KafkaCmd(ctx context.Context) cli.Function {
@@ -39,8 +37,21 @@ func KafkaCmd(ctx context.Context) cli.Function {
 				log.Fatalf("Could not load plugins: %+v", err)
 			}
 
-			if err := validateKafkaConfig(config); err != nil {
-				log.Fatalf("Config not valid: %+v", err)
+			now := time.Now().UTC()
+			since, err := util.ParseTimeOrDuration(config.SinceStr, now)
+			if err != nil {
+				log.Fatalf("Error parsing since flag: %+v", err)
+			}
+			until, err := util.ParseTimeOrDuration(config.UntilStr, now)
+			if err != nil {
+				log.Fatalf("Error parsing until flag: %+v", err)
+			}
+
+			if !since.IsZero() && since.After(now) {
+				log.Fatalf("Since must be in past")
+			}
+			if !since.IsZero() && !until.IsZero() && since.After(until) {
+				log.Fatalf("Until must be after since")
 			}
 
 			partitions, total, err := readKafkaPartitions(
@@ -77,8 +88,8 @@ func KafkaCmd(ctx context.Context) cli.Function {
 					Address:    config.Address,
 					Topic:      config.Topic,
 					Offset:     config.Offset,
-					Since:      config.Since,
-					Until:      config.Until,
+					Since:      since,
+					Until:      until,
 					Partitions: partitions,
 					MinBytes:   10e3,
 					MaxBytes:   10e6,
@@ -103,25 +114,6 @@ func KafkaCmd(ctx context.Context) cli.Function {
 			}
 		},
 	)
-}
-
-func validateKafkaConfig(config kafkaConfig) error {
-	var err error
-
-	if config.Since > 0 {
-		err = multierror.Append(
-			err,
-			errors.New("since must be in past"),
-		)
-	}
-	if config.Since > config.Until {
-		err = multierror.Append(
-			err,
-			errors.New("since must be before until"),
-		)
-	}
-
-	return err
 }
 
 func readKafkaPartitions(
