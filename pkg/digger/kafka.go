@@ -20,8 +20,8 @@ type KafkaConsumer struct {
 	Topic      string
 	Partitions []kafka.Partition
 	Offset     int64
-	Since      time.Duration
-	Until      time.Duration
+	Since      time.Time
+	Until      time.Time
 
 	MinBytes int
 	MaxBytes int
@@ -62,11 +62,6 @@ func (k *KafkaConsumer) consumePartition(
 	}
 	defer reader.Close()
 
-	var stopTime time.Time
-	if k.Until != 0 {
-		stopTime = time.Now().Add(k.Until)
-	}
-
 	for {
 		messageObj := message{}
 
@@ -82,7 +77,7 @@ func (k *KafkaConsumer) consumePartition(
 			continue
 		}
 
-		if !stopTime.IsZero() && msg.Time.After(stopTime) {
+		if !k.Until.IsZero() && msg.Time.After(k.Until) {
 			log.Warnf("Partition %d has reached until duration, stopping", partition)
 			return nil
 		}
@@ -109,8 +104,8 @@ func (k *KafkaConsumer) newReader(
 		},
 	)
 
-	if k.Since != 0 {
-		err := reader.SetOffsetAt(ctx, time.Now().Add(k.Since))
+	if !k.Since.IsZero() {
+		err := reader.SetOffsetAt(ctx, k.Since)
 		if err != nil {
 			return nil, err
 		}
