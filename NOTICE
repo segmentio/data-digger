@@ -1,3 +1,41 @@
 topicctl
 Copyright 2020 Segment.io, Inc.
 Released under the MIT License. See LICENSE for license terms and conditions.
+
+This project includes the following open source code:
+
+AWS SDK for go Copyright © Amazon.com, Inc.
+License: Apache 2.0 (http://www.apache.org/licenses/LICENSE‐2.0.html)
+
+cli Copyright © Segment.io, Inc.
+License: MIT (https://opensource.org/licenses/MIT)
+
+encoding Copyright © Segment.io, Inc.
+License: MIT (https://opensource.org/licenses/MIT)
+
+gjson Copyright © Josh Baker
+License: MIT (https://opensource.org/licenses/MIT)
+
+gogo Copyright © The GoGo Authors
+License: 3-Clause BSD (https://opensource.org/licenses/BSD-3-Clause)
+
+kafka-go Copyright © Segment.io, Inc.
+License: MIT (https://opensource.org/licenses/MIT)
+
+logrus Copyright © Simon Eskildsen
+License: MIT (https://opensource.org/licenses/MIT)
+
+logrus-prefixed-formatter Copyright © Denis Parchenko
+License: MIT (https://opensource.org/licenses/MIT)
+
+spinner Copyright © Brian Downs
+License: Apache 2.0 (http://www.apache.org/licenses/LICENSE‐2.0.html)
+
+tablewriter Copyright © Oleku Konko
+License: MIT (https://opensource.org/licenses/MIT)
+
+testify Copyright © Mat Ryer, Tyler Bunnell and contributors
+License: MIT (https://opensource.org/licenses/MIT)
+
+uilive Copyright © Greg Osuri
+License: MIT (https://opensource.org/licenses/MIT)

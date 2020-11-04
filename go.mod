@@ -10,7 +10,6 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/gogo/protobuf v1.3.1
 	github.com/gosuri/uilive v0.0.4
-	github.com/hashicorp/go-multierror v1.1.0
 	github.com/klauspost/compress v1.10.5 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
