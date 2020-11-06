@@ -34,29 +34,6 @@ func TestBase64Decode(t *testing.T) {
 	)
 }
 
-func TestParseAuthWriteKey(t *testing.T) {
-	assert.Equal(
-		t,
-		"",
-		parseAuthWriteKey("xxx", ""),
-	)
-	assert.Equal(
-		t,
-		"",
-		parseAuthWriteKey(`["Basic"]`, ""),
-	)
-	assert.Equal(
-		t,
-		"",
-		parseAuthWriteKey(`["Basic notvalidbase64"]`, ""),
-	)
-	assert.Equal(
-		t,
-		`"writeKey"`,
-		parseAuthWriteKey(`["Basic d3JpdGVLZXk6Cg=="]`, ""),
-	)
-}
-
 func TestTrim(t *testing.T) {
 	assert.Equal(
 		t,
