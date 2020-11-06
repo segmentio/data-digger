@@ -16,6 +16,7 @@ type fileConfig struct {
 	Recursive bool   `flag:"--recursive"  help:"scan subdirectories recursively" default:"false"`
 }
 
+// FileCmd defines a CLI function for digging through local files.
 func FileCmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config fileConfig) {

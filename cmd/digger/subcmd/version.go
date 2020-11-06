@@ -10,6 +10,7 @@ import (
 
 type versionConfig struct{}
 
+// VersionCmd defines a CLI function for returning the digger version.
 func VersionCmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config versionConfig) {
