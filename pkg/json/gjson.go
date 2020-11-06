@@ -15,7 +15,6 @@ import (
 func init() {
 	gjson.AddModifier("base64d", base64Decode)
 	gjson.AddModifier("trim", trimString)
-	gjson.AddModifier("writeKeyAuth", parseAuthWriteKey)
 }
 
 func base64Decode(json, arg string) string {
@@ -56,25 +55,6 @@ func base64Decode(json, arg string) string {
 	}
 
 	return string(result)
-}
-
-// parseAuthWriteKey converts the value of the "Authorization" header
-// in a request to a source write key.
-func parseAuthWriteKey(json, arg string) string {
-	if len(json) < 12 ||
-		!strings.HasPrefix(json, `["Basic `) ||
-		!strings.HasSuffix(json, `"]`) {
-		return ""
-	}
-
-	decoded, err := base64.StdEncoding.DecodeString(json[8 : len(json)-2])
-	if err != nil || len(decoded) < 2 {
-		log.Debugf("Error base64 decoding string: %+v", err)
-		return ""
-	}
-	decodedStr := strings.TrimSpace(string(decoded))
-
-	return fmt.Sprintf(`"%s"`, string(decodedStr[0:len(decodedStr)-1]))
 }
 
 func trimString(json, arg string) string {
