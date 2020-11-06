@@ -19,6 +19,7 @@ type s3Config struct {
 	Prefixes   string `flag:"-p,--prefixes" help:"comma-separated list of prefixes"`
 }
 
+// S3Cmd defines a CLI function for digging through S3 objects.
 func S3Cmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config s3Config) {

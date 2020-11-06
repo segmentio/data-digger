@@ -24,6 +24,7 @@ type kafkaConfig struct {
 	UntilStr   string `flag:"--until"         help:"time to end at; can be either RFC3339 timestamp or duration relative to now" default:"-"`
 }
 
+// KafkaCmd defines a CLI function for digging through Kafka messages.
 func KafkaCmd(ctx context.Context) cli.Function {
 	return cli.Command(
 		func(config kafkaConfig) {
