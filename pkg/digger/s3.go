@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -130,11 +131,18 @@ func (s *S3Consumer) processKey(
 ) error {
 	log.Debugf("Processing key %s", aws.StringValue(objInfo.Key))
 
+	var contentEncoding *string
+	if strings.HasSuffix(aws.StringValue(objInfo.Key), ".gz") {
+		// Assume gzip encoding (which might not actually be set in the object in S3)
+		contentEncoding = aws.String("gzip")
+	}
+
 	obj, err := s.S3Client.GetObjectWithContext(
 		ctx,
 		&s3.GetObjectInput{
-			Bucket: aws.String(s.Bucket),
-			Key:    objInfo.Key,
+			Bucket:                  aws.String(s.Bucket),
+			Key:                     objInfo.Key,
+			ResponseContentEncoding: contentEncoding,
 		},
 	)
 	if err != nil {
