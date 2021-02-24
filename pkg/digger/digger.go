@@ -2,6 +2,7 @@ package digger
 
 import (
 	"context"
+	"runtime"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -22,28 +23,27 @@ type Digger struct {
 func (d *Digger) Run(ctx context.Context) error {
 	messageChan := make(chan message)
 	errChan := make(chan error)
-
 	go func() {
 		errChan <- d.SourceConsumer.Run(ctx, messageChan)
 	}()
-
-	for {
-		select {
-		case err := <-errChan:
-			return err
-		case message := <-messageChan:
+	for i := 0; i < runtime.NumCPU(); i++ {
+		go func() {
 			select {
-			// If the context is done, don't process subsequent messages
 			case <-ctx.Done():
-				continue
-			default:
-			}
-
-			for _, p := range d.Processors {
-				if err := p.Process(ctx, message); err != nil {
-					log.Warnf("Failed to process message: %v", err)
+				return
+			case message := <-messageChan:
+				for _, p := range d.Processors {
+					if err := p.Process(ctx, message); err != nil {
+						log.Warnf("Failed to process message: %v", err)
+					}
 				}
 			}
-		}
+		}()
+	}
+	select {
+	case err := <-errChan:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
