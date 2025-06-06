@@ -3,7 +3,7 @@ jobs:
   test:
     working_directory: /go/src/github.com/segmentio/data-digger
     docker:
-      - image: circleci/golang:1.24
+      - image: cimg/go:1.24
         environment:
           GO111MODULE: "on"
           ECR_ENABLED: True
@@ -57,7 +57,7 @@ jobs:
   publish-ecr:
     working_directory: /go/src/github.com/segmentio/data-digger
     docker:
-      - image: circleci/golang:1.24
+      - image: cimg/go:1.24
 
     steps:
       - checkout
