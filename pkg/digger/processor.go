@@ -247,7 +247,7 @@ func (l *LiveStats) printProgress(outputWriter io.Writer, spinnerIndex int) {
 	topKSummary := l.topKCounter.Summary()
 	messageSummary := l.messageCounter.Summary()
 
-	fmt.Fprintf(
+	fmt.Fprint(
 		outputWriter,
 		strings.Join(
 			[]string{

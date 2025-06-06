@@ -1,12 +1,10 @@
 version: 2
 jobs:
   test:
-    working_directory: /go/src/github.com/segmentio/data-digger
     docker:
-      - image: circleci/golang:1.17
+      - image: cimg/go:1.24
         environment:
           GO111MODULE: "on"
-          ECR_ENABLED: True
           DIGGER_TEST_KAFKA_ADDR: "kafka:9092"
           DIGGER_TEST_S3_ADDR: "http://localstack:4572"
 
@@ -38,9 +36,6 @@ jobs:
       - setup_remote_docker:
           reusable: true
           docker_layer_caching: true
-      - restore_cache:
-          keys:
-            - go-modules-{{ checksum "go.sum" }}
       - run:
           name: Run tests
           command: make test
@@ -49,36 +44,6 @@ jobs:
           environment:
             SNYK_LEVEL: 'FLHI'
           command: curl -sL https://raw.githubusercontent.com/segmentio/snyk_helpers/master/initialization/snyk.sh | sh
-      - save_cache:
-          key: go-modules-{{ checksum "go.sum" }}
-          paths:
-            - "/go/pkg/mod"
-
-  publish-ecr:
-    working_directory: /go/src/github.com/segmentio/data-digger
-    docker:
-      - image: circleci/golang:1.17
-
-    steps:
-      - checkout
-      - setup_remote_docker:
-          reusable: true
-          docker_layer_caching: true
-      - run:
-          name: ECR Login
-          command: |
-            sudo apt-get update && sudo apt-get install --yes python3 python3-pip
-            pip3 install awscli
-            $(aws ecr get-login --no-include-email --region ${AWS_REGION} --registry-ids ${AWS_ACCOUNT_ID})
-      - run:
-          name: Build and push image
-          command: |
-            export SHORT_GIT_SHA=$(echo ${CIRCLE_SHA1} | cut -c -7)
-            docker build \
-              -t ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/data-digger:${SHORT_GIT_SHA} \
-              --build-arg VERSION=${SHORT_GIT_SHA} \
-              .
-            docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/data-digger:${SHORT_GIT_SHA}
 
 workflows:
   version: 2
@@ -86,12 +51,6 @@ workflows:
     jobs:
       - test:
           context: snyk
-          filters:
-            tags:
-              only: /.*/
-      - publish-ecr:
-          context: segmentio-org-global
-          requires: [test]
           filters:
             tags:
               only: /.*/
