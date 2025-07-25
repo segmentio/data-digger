@@ -2,7 +2,7 @@ version: 2
 jobs:
   test:
     docker:
-      - image: cimg/go:1.24.2
+      - image: cimg/go:1.24.4
         environment:
           GO111MODULE: "on"
           DIGGER_TEST_KAFKA_ADDR: "kafka:9092"
