@@ -1,5 +1,5 @@
-FROM golang:1.24.2 as builder
-ENV SRC github.com/segmentio/data-digger
+FROM golang:1.24.4 AS builder
+ENV SRC=github.com/segmentio/data-digger
 ENV CGO_ENABLED=0
 
 COPY . /go/src/${SRC}
