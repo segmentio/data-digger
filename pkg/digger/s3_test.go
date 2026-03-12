@@ -8,17 +8,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestS3Consumer(t *testing.T) {
 	ctx := context.Background()
-	sess := session.Must(session.NewSession())
 
 	var s3Endpoint string
 
@@ -29,19 +28,27 @@ func TestS3Consumer(t *testing.T) {
 		s3Endpoint = "http://localhost:4572"
 	}
 
-	s3Client := s3.New(
-		sess,
-		&aws.Config{
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithCredentialsProvider(
 			// These need to be set, but they can be anything since localstack
 			// doesn't do any checking
-			Credentials: credentials.NewStaticCredentials("test", "test", "test"),
-
-			Endpoint:         aws.String(s3Endpoint),
-			Region:           aws.String("us-west-2"),
-			DisableSSL:       aws.Bool(true),
-			S3ForcePathStyle: aws.Bool(true),
-		},
+			credentials.NewStaticCredentialsProvider("test", "test", "test"),
+		),
+		config.WithRegion("us-west-2"),
+		config.WithEndpointResolverWithOptions(
+			aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
+				return aws.Endpoint{
+					URL: s3Endpoint,
+					HostnameImmutable: true,
+					SigningRegion: "us-west-2",
+				}, nil
+			}),
+		),
 	)
+
+	s3Client := s3.NewFromConfig(cfg, func(o *s3.Options) {
+		o.UsePathStyle = true
+	})
 
 	testBucket := createBucket(ctx, t, s3Client)
 
@@ -57,7 +64,7 @@ func TestS3Consumer(t *testing.T) {
 		Prefixes:   []string{"test-prefix1", "test-prefix2"},
 		NumWorkers: 1,
 	}
-	err := consumer.Run(ctx, messageChan)
+	err = consumer.Run(ctx, messageChan)
 	require.NoError(t, err)
 
 	require.Equal(t, 5, len(messageChan))
@@ -74,10 +81,10 @@ func TestS3Consumer(t *testing.T) {
 	assert.Equal(t, []byte("value2"), message2.msg.Value)
 }
 
-func createBucket(ctx context.Context, t *testing.T, s3Client *s3.S3) string {
+func createBucket(ctx context.Context, t *testing.T, s3Client *s3.Client) string {
 	bucketName := fmt.Sprintf("test-bucket-%d", time.Now().UnixNano())
 
-	_, err := s3Client.CreateBucketWithContext(
+	_, err := s3Client.CreateBucket(
 		ctx,
 		&s3.CreateBucketInput{
 			Bucket: aws.String(bucketName),
@@ -90,19 +97,19 @@ func createBucket(ctx context.Context, t *testing.T, s3Client *s3.S3) string {
 func writeKey(
 	ctx context.Context,
 	t *testing.T,
-	s3Client *s3.S3,
+	s3Client *s3.Client,
 	bucket string,
 	key string,
 	value string,
 ) {
 	body := bytes.NewBufferString(value)
 
-	_, err := s3Client.PutObjectWithContext(
+	_, err := s3Client.PutObject(
 		ctx,
 		&s3.PutObjectInput{
 			Bucket: aws.String(bucket),
 			Key:    aws.String(key),
-			Body:   aws.ReadSeekCloser(body),
+			Body:   body,
 		},
 	)
 	require.NoError(t, err)

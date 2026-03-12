@@ -7,8 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/segmentio/kafka-go"
 	log "github.com/sirupsen/logrus"
 )
@@ -16,7 +17,7 @@ import (
 // S3Consumer is a Consumer implementation that reads from one or more prefixes in an S3
 // bucket.
 type S3Consumer struct {
-	S3Client   *s3.S3
+	S3Client   *s3.Client
 	Bucket     string
 	Prefixes   []string
 	NumWorkers int
@@ -25,7 +26,7 @@ type S3Consumer struct {
 var _ Consumer = (*S3Consumer)(nil)
 
 type s3ObjTask struct {
-	objInfo *s3.Object
+	objInfo types.Object
 	index   int
 }
 
@@ -64,34 +65,31 @@ func (s *S3Consumer) processPrefixes(
 	prefixesRead := 0
 
 	for _, prefix := range s.Prefixes {
-		err := s.S3Client.ListObjectsPagesWithContext(
-			ctx,
-			&s3.ListObjectsInput{
-				Bucket: aws.String(s.Bucket),
-				Prefix: aws.String(prefix),
-			},
-			func(output *s3.ListObjectsOutput, hasMore bool) bool {
-				for _, objInfo := range output.Contents {
-					subTask := s3ObjTask{
-						objInfo: objInfo,
-						index:   keysRead,
-					}
-					select {
-					case objectChan <- subTask:
-					case <-ctx.Done():
-						return false
-					}
-					keysRead++
+		paginator := s3.NewListObjectsV2Paginator(s.S3Client, &s3.ListObjectsV2Input{
+			Bucket: aws.String(s.Bucket),
+			Prefix: aws.String(prefix),
+		})
+
+		for paginator.HasMorePages() {
+			output, err := paginator.NextPage(ctx)
+			if err != nil {
+				return err
+			}
+
+			for _, objInfo := range output.Contents {
+				subTask := s3ObjTask{
+					objInfo: objInfo,
+					index: keysRead,
 				}
-
-				return true
-			},
-		)
-
-		prefixesRead++
-		if err != nil {
-			return err
+				select {
+				case objectChan <- subTask:
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+				keysRead++
+			}
 		}
+		prefixesRead++
 	}
 
 	return nil
@@ -113,7 +111,7 @@ func (s *S3Consumer) runSubTasks(
 			if err != nil {
 				return fmt.Errorf(
 					"Error processing key %s: %+v",
-					aws.StringValue(subTask.objInfo.Key),
+					aws.ToString(subTask.objInfo.Key),
 					err,
 				)
 			}
@@ -126,18 +124,18 @@ func (s *S3Consumer) runSubTasks(
 func (s *S3Consumer) processKey(
 	ctx context.Context,
 	messageChan chan message,
-	objInfo *s3.Object,
+	objInfo types.Object,
 	index int,
 ) error {
-	log.Debugf("Processing key %s", aws.StringValue(objInfo.Key))
+	log.Debugf("Processing key %s", aws.ToString(objInfo.Key))
 
 	var contentEncoding *string
-	if strings.HasSuffix(aws.StringValue(objInfo.Key), ".gz") {
+	if strings.HasSuffix(aws.ToString(objInfo.Key), ".gz") {
 		// Assume gzip encoding (which might not actually be set in the object in S3)
 		contentEncoding = aws.String("gzip")
 	}
 
-	obj, err := s.S3Client.GetObjectWithContext(
+	obj, err := s.S3Client.GetObject(
 		ctx,
 		&s3.GetObjectInput{
 			Bucket:                  aws.String(s.Bucket),
@@ -175,8 +173,8 @@ func (s *S3Consumer) processKey(
 			messageChan <- message{
 				msg: kafka.Message{
 					Partition: index,
-					Time:      aws.TimeValue(objInfo.LastModified),
-					Key:       []byte(aws.StringValue(objInfo.Key)),
+					Time:      aws.ToTime(objInfo.LastModified),
+					Key:       []byte(aws.ToString(objInfo.Key)),
 					Offset:    offset,
 					Value:     copiedContents,
 				},

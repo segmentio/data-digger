@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/segmentio/cli"
 	dig "github.com/segmentio/data-digger/pkg/digger"
 	log "github.com/sirupsen/logrus"
@@ -38,8 +38,11 @@ func S3Cmd(ctx context.Context) cli.Function {
 				log.Fatalf("Error creating processors: %+v", err)
 			}
 
-			sess := session.Must(session.NewSession())
-			s3Client := s3.New(sess)
+			cfg, err := awsConfig.LoadDefaultConfig(ctx)
+			if err != nil {
+				log.Fatalf("Unable to load AWS config: %v", err)
+			}
+			s3Client := s3.NewFromConfig(cfg)
 
 			digger := &dig.Digger{
 				SourceConsumer: &dig.S3Consumer{
